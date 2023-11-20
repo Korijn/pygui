@@ -64,6 +64,7 @@ def load_from_string(template, path=None):
     """
     if path is None:
         path = "<template>"
+        template = textwrap.dedent(template)
 
     # Construct the AST tree
     tree, name = construct_ast(path=path, template=template)
