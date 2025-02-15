@@ -1,7 +1,4 @@
-<template>
-  <widget :data="tests">
-  </widget>
-</template>
+<widget :data="tests" />
 
 <script>
 import collagraph as cg

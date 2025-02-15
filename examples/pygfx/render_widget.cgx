@@ -1,0 +1,48 @@
+<wgpu-canvas
+  :minimum_height="400"
+  :minimum_width="600"
+/>
+
+<script>
+from observ import reactive
+import pygfx as gfx
+from PySide6 import QtWidgets
+
+import collagraph as cg
+
+
+class RenderWidget(cg.Component):
+    """
+    RenderWidget that shows how to host a wgpu canvas object and
+    use another collagraph instance to render a 3D scene with Pygfx.
+
+    Note that the wgpu-canvas element needs to be registered
+    with the root collagraph renderer, like this:
+        renderer.register_element("WgpuCanvas", WgpuCanvas)
+    """
+    def mounted(self):
+        renderer = gfx.renderers.WgpuRenderer(self.element)
+
+        camera = gfx.PerspectiveCamera(60, 16 / 9)
+        camera.local.z = 25
+        camera.show_pos((0, 0, 0))
+
+        controls = gfx.OrbitController(camera, register_events=renderer)
+
+        self.gui = cg.Collagraph(renderer=cg.PygfxRenderer())
+
+        container = gfx.Scene()
+
+        def animate():
+            renderer.render(container, camera)
+
+        self.gui.renderer.add_on_change_handler(
+            lambda: self.element.request_draw(animate)
+        )
+
+        self.gui.render(
+            self.props["scene"],
+            container,
+            state=self.props,
+        )
+</script>

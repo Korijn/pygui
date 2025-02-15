@@ -1,0 +1,63 @@
+<mesh
+  :local.position="position"
+  :local.scale="scale"
+  :geometry="geometry"
+  :material="material"
+  @click="pad_pressed"
+  @pointer_enter="lambda ev: hover(True)"
+  @pointer_leave="lambda ev: hover(False)"
+/>
+
+<script>
+import pygfx as gfx
+from wgpu.gui.auto import call_later
+
+import collagraph as cg
+
+
+class Button(cg.Component):
+    geometry = gfx.box_geometry()
+    materials = {  # noqa: RUF012
+        "default": gfx.MeshPhongMaterial(
+            color=[1.0, 0.5, 0.0],
+            pick_write=True,
+        ),
+        "pressed": gfx.MeshPhongMaterial(
+            color=[0.0, 0.5, 0.0],
+            pick_write=True,
+        ),
+        "hovered": gfx.MeshPhongMaterial(
+            color=[1.0, 0.2, 0.0],
+            pick_write=True,
+        ),
+    }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.state["pressed"] = False
+        self.state["hovered"] = False
+        self.state["scale"] = self.props.get("scale", [0.85] * 3)
+
+    def pad_pressed(self, event):
+        self.state["pressed"] = True
+        call_later(2, self.release)
+
+    def release(self):
+        self.state["pressed"] = False
+
+    def hover(self, hover):
+        self.state["hovered"] = hover
+
+    @property
+    def material(self):
+        return (
+            Button.materials["pressed"]
+            if self.state["pressed"]
+            else (
+                Button.materials["hovered"]
+                if self.state["hovered"]
+                else Button.materials["default"]
+            )
+        )
+
+</script>

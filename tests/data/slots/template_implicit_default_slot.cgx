@@ -1,18 +1,16 @@
-<template>
-  <Layout :fallback="True">
-    <template #header>
-      <label text="header content" />
-    </template>
+<Layout :fallback="True">
+  <template #header>
+    <label text="header content" />
+  </template>
 
-    <!-- Implicit default slot -->
-    <label text="content" />
-    <label text="even more content" />
+  <!-- Implicit default slot -->
+  <label text="content" />
+  <label text="even more content" />
 
-    <template #footer>
-      <label text="footer content" />
-    </template>
-  </Layout>
-</template>
+  <template #footer>
+    <label text="footer content" />
+  </template>
+</Layout>
 
 <script lang="python">
 import collagraph as cg

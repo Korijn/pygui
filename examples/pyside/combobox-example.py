@@ -3,7 +3,6 @@ from PySide6 import QtWidgets
 
 import collagraph as cg
 
-
 app = QtWidgets.QApplication()
 
 

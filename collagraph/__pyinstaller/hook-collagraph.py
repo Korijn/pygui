@@ -3,7 +3,8 @@ from pathlib import Path
 
 from PyInstaller.utils.hooks import collect_data_files
 
-from collagraph.cgx.cgx import CGXParser, get_script_ast
+from collagraph.sfc.compiler import get_script_ast
+from collagraph.sfc.parser import CGXParser
 
 
 def hook(hook_api):
@@ -47,11 +48,11 @@ class ImportsCollector(ast.NodeVisitor):
     def __init__(self):
         self.names = set()
 
-    def visit_ImportFrom(self, node):
+    def visit_ImportFrom(self, node):  # noqa: N802
         for alias in node.names:
             self.names.add(".".join([node.module, alias.name]))
         self.names.add(node.module)
 
-    def visit_Import(self, node):
+    def visit_Import(self, node):  # noqa: N802
         for alias in node.names:
             self.names.add(alias.name)

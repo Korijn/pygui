@@ -11,11 +11,22 @@ from PySide6 import QtCore, QtWidgets
 import collagraph as cg
 
 
-def test_simple_widget(qtbot):
+def test_simple_widget(qtbot, parse_source):
     renderer = cg.PySideRenderer(autoshow=False)
     gui = cg.Collagraph(renderer=renderer)
 
-    element = cg.h("Widget", {"layout": {"type": "Box", "direction": "RightToLeft"}})
+    element, _ = parse_source(
+        """
+        <widget :layout="{'type': 'Box', 'direction': 'RightToLeft'}" />
+
+        <script>
+        import collagraph as cg
+
+        class Element(cg.Component):
+            pass
+        </script>
+        """
+    )
     container = renderer.create_element("Widget")
     gui.render(element, container)
 
@@ -33,12 +44,23 @@ def test_simple_widget(qtbot):
     qtbot.waitUntil(check_layout, timeout=500)
 
 
-def test_label(qtbot):
+def test_label(qtbot, parse_source):
     renderer = cg.PySideRenderer(autoshow=False)
     gui = cg.Collagraph(renderer=renderer)
 
-    element = cg.h(
-        "Widget", {"layout": {"type": "Box"}}, cg.h("Label", {"text": "Foo"})
+    element, _ = parse_source(
+        """
+        <widget :layout="{'type': 'Box'}">
+          <label text="Foo" />
+        </widget>
+
+        <script>
+        import collagraph as cg
+
+        class Element(cg.Component):
+            pass
+        </script>
+        """
     )
     container = renderer.create_element("Window")
     gui.render(element, container)
@@ -91,20 +113,28 @@ def test_register_custom_layout_subclass():
     assert isinstance(widget.layout(), HorizontalLayout)
 
 
-def test_widget_add_remove(qtbot):
-    def Example(props):
-        children = []
-        if props["label"]:
-            children.append(cg.h("Label", {}))
-        return cg.h("Widget", {}, *children)
+def test_widget_add_remove(qtbot, parse_source):
+    element, _ = parse_source(
+        """
+        <widget>
+          <label v-if="label" />
+        </widget>
+
+        <script>
+        import collagraph as cg
+
+        class Example(cg.Component):
+            pass
+        </script>
+        """
+    )
 
     renderer = cg.PySideRenderer(autoshow=False)
     gui = cg.Collagraph(renderer=renderer)
 
     state = reactive({"label": True})
-    element = cg.h(Example, state)
     container = renderer.create_element("Widget")
-    gui.render(element, container)
+    gui.render(element, container, state=state)
 
     def check_label_is_added():
         assert container.findChild(QtWidgets.QLabel)
@@ -161,34 +191,48 @@ def test_removing_attribute_not_supported():
     renderer.remove_attribute(widget, "geometry", rect)
 
 
-def test_pyside_event_listeners(qtbot):
+def test_pyside_event_listeners(qtbot, parse_source):
+    element, _ = parse_source(
+        """
+        <widget>
+          <template v-if="label">
+            <label text="Foo" />
+            <button @clicked="button_clicked" />
+          </template>
+          <template v-else>
+            <label text="Bar" />
+            <button />
+          </template>
+        </widget>
+
+        <script>
+        import collagraph as cg
+
+        class Element(cg.Component):
+            pass
+        </script>
+        """
+    )
+
     clicked = 0
-
-    def Example(props):
-        children = []
-        if props["label"] is True:
-            children.append(cg.h("Label", {"text": "Foo"}))
-            children.append(cg.h("Button", {"on_clicked": button_clicked}))
-        else:
-            children.append(cg.h("Label", {"text": "Bar"}))
-            children.append(cg.h("Button"))
-
-        return cg.h("Widget", {}, *children)
-
-    renderer = cg.PySideRenderer(autoshow=False)
-    gui = cg.Collagraph(renderer=renderer)
-
-    container = renderer.create_element("Widget")
-    state = reactive({"label": True})
 
     def button_clicked():
         nonlocal clicked
         clicked += 1
         state["label"] = False
 
-    element = cg.h(Example, state)
+    renderer = cg.PySideRenderer(autoshow=False)
+    gui = cg.Collagraph(renderer=renderer)
 
-    gui.render(element, container)
+    container = renderer.create_element("Widget")
+    state = reactive(
+        {
+            "label": True,
+            "button_clicked": button_clicked,
+        }
+    )
+
+    gui.render(element, container, state=state)
 
     button = None
 
@@ -215,8 +259,19 @@ def test_pyside_event_listeners(qtbot):
     assert clicked == 1
 
 
-def test_cleanup_collagraph_instance(qapp):
-    element = cg.h("widget")
+def test_cleanup_collagraph_instance(qapp, parse_source):
+    element, _ = parse_source(
+        """
+        <widget />
+
+        <script>
+        import collagraph as cg
+
+        class Element(cg.Component):
+            pass
+        </script>
+        """
+    )
     gui = cg.Collagraph(renderer=cg.PySideRenderer(autoshow=False))
     gui.render(element, qapp)
 
@@ -233,16 +288,28 @@ def test_cleanup_collagraph_instance(qapp):
     assert not gui_ref()
 
 
-def test_is_new_no_type_error(qapp):
+def test_is_new_no_type_error(qapp, parse_source):
+    element, _ = parse_source(
+        """
+        <widget v-bind="props" />
+
+        <script>
+        import collagraph as cg
+
+        class Element(cg.Component):
+            pass
+        </script>
+        """
+    )
     # Comparing a QtCore.Qt.ItemFlags with None results in a TypeError
-    # This can happen during reconciliation so let's make sure we test for that
+    # This could happen during reconciliation with fibers so let's make sure we test
+    # for that, even though fibers are not used anymore
     state = reactive({"flags": QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsEditable})
-    element = cg.h("widget", state)
     gui = cg.Collagraph(
         renderer=cg.PySideRenderer(autoshow=False),
         event_loop_type=cg.EventLoopType.SYNC,
     )
-    gui.render(element, qapp)
+    gui.render(element, qapp, state=state)
 
     # Resetting the flags property to None should also not result in a TypeError
     state["flags"] = None

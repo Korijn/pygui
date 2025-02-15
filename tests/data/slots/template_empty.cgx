@@ -1,10 +1,8 @@
-<template>
-  <Layout :fallback="True" />
-</template>
+<Layout :fallback="True" />
 
 <script lang="python">
 import collagraph as cg
-from tests.data.slots.slots import Layout
+from tests.data.slots.widget_with_slots import Layout
 
 
 class Template(cg.Component):

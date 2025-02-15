@@ -1,4 +1,3 @@
-import textwrap
 from functools import partial
 
 import pytest
@@ -8,10 +7,7 @@ PySide6 = pytest.importorskip("PySide6")
 
 from PySide6 import QtCore, QtGui, QtWidgets
 
-from collagraph import Collagraph
-from collagraph import create_element as h
-from collagraph.cgx.cgx import load_from_string
-from collagraph.renderers import PySideRenderer
+import collagraph as cg
 
 
 def get_current_window(app):
@@ -25,16 +21,24 @@ def get_current_window(app):
     return windows[0] if windows else None
 
 
-def test_simple_structure(qtbot):
-    renderer = PySideRenderer(autoshow=False)
-    gui = Collagraph(renderer=renderer)
+def test_simple_structure(qtbot, parse_source):
+    renderer = cg.PySideRenderer(autoshow=False)
+    gui = cg.Collagraph(renderer=renderer)
 
     container = renderer.create_element("Window")
 
-    def Simple(props):
-        return h("Widget", {"object_name": "simple"})
+    Simple, _ = parse_source(
+        """
+        <widget object_name="simple" />
+        <script>
+        import collagraph as cg
+        class Simple(cg.Component):
+            pass
+        </script>
+        """
+    )
 
-    gui.render(h(Simple, {}), container)
+    gui.render(Simple, container)
 
     def check_simple_is_child():
         simple = container.findChild(QtWidgets.QWidget, name="simple")
@@ -44,92 +48,96 @@ def test_simple_structure(qtbot):
     qtbot.waitUntil(check_simple_is_child, timeout=500)
 
 
-def test_layouts(qapp, qtbot):
-    renderer = PySideRenderer(autoshow=False)
-    gui = Collagraph(renderer=renderer)
+def test_layouts(qapp, qtbot, parse_source):
+    renderer = cg.PySideRenderer(autoshow=False)
+    gui = cg.Collagraph(renderer=renderer)
 
-    def LayoutExample(props):
-        # Data to fill the box layout
-        box = []
-        for i in range(1, 5):
-            box.append(("Button", {"text": f"Button {i}"}))
+    LayoutExample, _ = parse_source(
+        """
+        <window>
+          <widget>
+            <groupbox
+              title="Horizontal layout"
+              object_name="box"
+              :layout="{'type': 'box', 'direction': 'LeftToRight'}"
+            >
+              <component
+                v-for="tag, attrs in box"
+                :is="tag"
+                v-bind="attrs"
+              />
+            </groupbox>
+            <groupbox
+              title="Grid layout"
+              object_name="grid"
+              :layout="{'type': 'grid'}"
+            >
+              <component
+                v-for="tag, attrs in grid"
+                :is="tag"
+                v-bind="attrs"
+              />
+            </groupbox>
+            <groupbox
+              title="Form layout"
+              object_name="form"
+              :layout="{'type': 'form'}"
+            >
+              <component
+                v-for="tag, attrs in form"
+                :is="tag"
+                v-bind="attrs"
+              />
+            </groupbox>
+            <textedit text="This widget takes up all the remaining
+                space in the top-level layout" />
+            <dialogbuttonbox :buttons="('Ok', 'Cancel')">
+              <button text="Custom" role="ActionRole" />
+            </dialogbuttonbox>
+          </widget>
+        </window>
 
-        # Data to fill the grid layout
-        grid = []
-        for i in range(1, 5):
-            grid.append(("Label", {"text": f"Line {i}", "grid_index": (i, 0)}))
-            grid.append(("LineEdit", {"grid_index": (i, 1)}))
-        grid.append(
-            (
-                "TextEdit",
-                {
-                    "text": "This widget takes up about two thirds of the grid layout",
-                    "grid_index": (1, 2, 4, 1),
-                },
-            )
-        )
+        <script>
+        import collagraph as cg
 
-        # Data to fill the form layout
-        form = []
-        for i, widget in enumerate(["LineEdit", "ComboBox", "SpinBox"]):
-            text = f"Line {i+1}:"
-            if i == 1:
-                text = "Line 2, long text:"
-            form.append((widget, {"form_label": text, "form_index": i}))
+        class LayoutExample(cg.Component):
+            def __init__(self, *args, **kwargs):
+                super().__init__(*args, **kwargs)
+                # Data to fill the box layout
+                self.box = []
+                for i in range(1, 5):
+                    self.box.append(("button", {"text": f"Button {i}"}))
 
-        return h(
-            "Window",
-            {},
-            h(
-                "Widget",
-                {},
-                h(
-                    "GroupBox",
-                    {
-                        "title": "Horizontal layout",
-                        "object_name": "box",
-                        "layout": {
-                            "type": "Box",
-                            "direction": "LeftToRight",
+                # Data to fill the grid layout
+                self.grid = []
+                for i in range(1, 5):
+                    self.grid.append(
+                        ("label", {"text": f"Line {i}", "grid_index": (i, 0)})
+                    )
+                    self.grid.append(("lineedit", {"grid_index": (i, 1)}))
+                self.grid.append(
+                    (
+                        "TextEdit",
+                        {
+                            "text": "This widget takes up about"
+                                "two thirds of the grid layout",
+                            "grid_index": (1, 2, 4, 1),
                         },
-                    },
-                    *[h(item[0], item[1]) for item in box],
-                ),
-                h(
-                    "GroupBox",
-                    {
-                        "title": "Grid layout",
-                        "object_name": "grid",
-                        "layout": {"type": "Grid"},
-                    },
-                    *[h(item[0], item[1]) for item in grid],
-                ),
-                h(
-                    "GroupBox",
-                    {
-                        "title": "Form layout",
-                        "object_name": "form",
-                        "layout": {"type": "Form"},
-                    },
-                    *[h(item[0], item[1]) for item in form],
-                ),
-                h(
-                    "TextEdit",
-                    {
-                        "text": "This widget takes up all the remaining "
-                        "space in the top-level layout."
-                    },
-                ),
-                h(
-                    "DialogButtonBox",
-                    {"buttons": ("Ok", "Cancel")},
-                    h("Button", {"text": "Custom", "role": "ActionRole"}),
-                ),
-            ),
-        )
+                    )
+                )
 
-    element = h(LayoutExample, {})
-    gui.render(element, qapp)
+                # Data to fill the form layout
+                self.form = []
+                for i, widget in enumerate(["lineedit", "combobox", "spinbox"]):
+                    text = f"Line {i+1}:"
+                    if i == 1:
+                        text = "Line 2, long text:"
+                    self.form.append((widget, {"form_label": text, "form_index": i}))
+        </script>
+        """
+    )
+
+    gui.render(LayoutExample, qapp)
 
     window = None
 
@@ -155,64 +163,73 @@ def test_layouts(qapp, qtbot):
     qtbot.waitUntil(check_label, timeout=500)
 
 
-def test_lists(qapp, qtbot, qtmodeltester):
-    def ListsExample(props):
-        def add_item():
-            props["items"].append([["NEW", "ITEM"], False])
+def test_lists(qapp, qtbot, qtmodeltester, parse_source):
+    """
+    children = []
+    for row, (item, _) in enumerate(props["items"]):
+        for column, text in enumerate(item):
+            children.append(
+                h("QStandardItem", {"text": text, "model_index": (row, column)})
+            )
 
-        def remove_item():
-            if len(props["items"]):
-                props["items"].pop(0)
+    item_model = h("QStandardItemModel", {"column_count": 2}, *children)
+    """
+    ListsExample, _ = parse_source(
+        """
+        <window>
+          <widget>
+            <qsplitter>
+              <component
+                v-for="view in ['qlistview', 'qtableview', 'qtreeview']"
+                :is="view"
+              >
+                <qstandarditemmodel :column_count="2">
+                  <!-- FIXME: v-bind doesn't seem to work for some reason... -->
+                  <qstandarditem
+                    v-for="content in items_content()"
+                    :text="content['text']"
+                    :model_index="content['model_index']"
+                  />
+                </qstandarditemmodel>
+              </component>
+            </qsplitter>
+            <widget
+              :layout="{'type': 'box', 'direction': 'LeftToRight'}"
+              :maximum-height="50"
+            >
+              <button text="Add" @clicked="add_item" object-name="add" />
+              <button text="Remove" @clicked="remove_item" object-name="remove" />
+            </widget>
+          </widget>
+        </window>
 
-        children = []
-        for row, (item, _) in enumerate(props["items"]):
-            for column, text in enumerate(item):
-                children.append(
-                    h("QStandardItem", {"text": text, "model_index": (row, column)})
-                )
+        <script>
+        import collagraph as cg
 
-        item_model = h("QStandardItemModel", {"column_count": 2}, *children)
+        class ListsExample(cg.Component):
+            def __init__(self, *args, **kwargs):
+                super().__init__(*args, **kwargs)
+                self.state["values"] = self.props["items"]
 
-        return h(
-            "Window",
-            {},
-            h(
-                "Widget",
-                {},
-                h(
-                    "QSplitter",
-                    {},
-                    h("QListView", {}, item_model),
-                    h("QTableView", {}, item_model),
-                    h("QTreeView", {}, item_model),
-                ),
-                h(
-                    "Widget",
-                    {
-                        "layout": {
-                            "type": "Box",
-                            "direction": "LeftToRight",
-                        },
-                        "maximum-height": 50,
-                    },
-                    h(
-                        "Button",
-                        {"text": "Add", "on_clicked": add_item, "object_name": "add"},
-                    ),
-                    h(
-                        "Button",
-                        {
-                            "text": "Remove",
-                            "on_clicked": remove_item,
-                            "object_name": "remove",
-                        },
-                    ),
-                ),
-            ),
-        )
+            def items_content(self):
+                return [
+                    {"text": text, "model_index": (row, column)}
+                    for row, (item, _) in enumerate(self.state["values"])
+                    for column, text in enumerate(item)
+                ]
 
-    renderer = PySideRenderer(autoshow=False)
-    gui = Collagraph(renderer=renderer)
+            def add_item(self):
+                self.state["values"].append([["NEW", "ITEM"], False])
+
+            def remove_item(self):
+                if len(self.state["values"]):
+                    self.state["values"].pop(0)
+        </script>
+        """
+    )
+
+    renderer = cg.PySideRenderer(autoshow=False)
+    gui = cg.Collagraph(renderer=renderer)
 
     state = reactive(
         {
@@ -224,8 +241,7 @@ def test_lists(qapp, qtbot, qtmodeltester):
 
     assert len(qapp.topLevelWidgets()) == 0
 
-    element = h(ListsExample, state)
-    gui.render(element, qapp)
+    gui.render(ListsExample, qapp, state=state)
 
     window = None
     model = None
@@ -284,32 +300,31 @@ def test_lists(qapp, qtbot, qtmodeltester):
     qtbot.waitUntil(check_model_does_not_contain_foo, timeout=500)
 
 
-def test_menu(qapp, qtbot):
-    def MenuExample(props):
-        return h(
-            "Window",
-            {},
-            h(
-                "QMenuBar",
-                {},
-                h(
-                    "QMenu",
-                    {"title": "File"},
-                    h(
-                        "QAction",
-                        {"text": "Open"},
-                    ),
-                ),
-            ),
-            h(
-                "Widget",
-                {},
-            ),
-        )
+def test_menu(qapp, qtbot, parse_source):
+    MenuExample, _ = parse_source(
+        """
+        <window>
+          <qmenubar>
+            <qmenu title="File">
+              <qaction text="Open" />
+            </qmenu>
+          </qmenubar>
+          <widget />
+        </window>
 
-    renderer = PySideRenderer(autoshow=False)
-    gui = Collagraph(renderer=renderer)
-    gui.render(h(MenuExample, {}), qapp)
+        <script>
+        import collagraph as cg
+
+        class MenuExample(cg.Component):
+            pass
+        </script>
+
+        """
+    )
+
+    renderer = cg.PySideRenderer(autoshow=False)
+    gui = cg.Collagraph(renderer=renderer)
+    gui.render(MenuExample, qapp)
 
     def check_file_menu():
         windows = [
@@ -324,8 +339,50 @@ def test_menu(qapp, qtbot):
     qtbot.waitUntil(check_file_menu, timeout=500)
 
 
-def test_menu_extensively(qapp, qtbot):
-    from tests.data.menubar import MenuBarTest
+def test_menu_extensively(qapp, qtbot, parse_source):
+    MenuBarTest, _ = parse_source(
+        """
+        <window>
+          <menubar
+            v-if="show_menubar"
+            object_name="menubar"
+          >
+            <menu
+              v-if="show_menu"
+              title="Menu"
+              object_name="menu"
+            >
+              <action
+                v-if="show_item"
+                text="Action"
+                object_name="action"
+              />
+              <menu
+                v-if="show_submenu"
+                title="Sub Menu"
+                object_name="submenu"
+              >
+                <action
+                  v-if="show_subitem"
+                  text="Sub Action"
+                  object_name="subaction"
+                />
+              </menu>
+            </menu>
+          </menubar>
+          <widget />
+        </window>
+
+        <script>
+        import collagraph as cg
+
+
+        class MenuBarTest(cg.Component):
+            pass
+        </script>
+
+        """
+    )
 
     state = reactive(
         {
@@ -336,9 +393,9 @@ def test_menu_extensively(qapp, qtbot):
             "show_subitem": True,
         }
     )
-    renderer = PySideRenderer(autoshow=False)
-    gui = Collagraph(renderer=renderer)
-    gui.render(h(MenuBarTest, state), qapp)
+    renderer = cg.PySideRenderer(autoshow=False)
+    gui = cg.Collagraph(renderer=renderer)
+    gui.render(MenuBarTest, qapp, state=state)
 
     def check(menubar, menu, item, submenu, subitem):
         windows = [
@@ -367,6 +424,7 @@ def test_menu_extensively(qapp, qtbot):
 
     state["show_menu"] = False
 
+    # breakpoint()
     check_items = partial(check, True, False, False, False, False)
     qtbot.waitUntil(check_items, timeout=500)
 
@@ -378,11 +436,11 @@ def test_menu_extensively(qapp, qtbot):
 
 
 def test_app(qapp, qtbot):
-    from tests.data.app import Window
+    from tests.data.pyside.app import Window
 
-    renderer = PySideRenderer(autoshow=False)
-    gui = Collagraph(renderer=renderer)
-    gui.render(h(Window), qapp)
+    renderer = cg.PySideRenderer(autoshow=False)
+    gui = cg.Collagraph(renderer=renderer)
+    gui.render(Window, qapp)
 
     window = None
 
@@ -479,36 +537,32 @@ def test_app(qapp, qtbot):
     )
 
 
-def test_scroll_area(qapp, qtbot):
-    App, _ = load_from_string(
-        textwrap.dedent(
-            """
-            <template>
-              <scrollarea>
-                <label
-                  v-if="label"
-                />
-                <textedit
-                  v-else-if="edit"
-                />
-              </scrollarea>
-            </template>
+def test_scroll_area(qapp, qtbot, parse_source):
+    App, _ = parse_source(
+        """
+        <scrollarea>
+          <label
+            v-if="label"
+          />
+          <textedit
+            v-else-if="edit"
+          />
+        </scrollarea>
 
-            <script>
-            import collagraph as cg
+        <script>
+        import collagraph as cg
 
-            class App(cg.Component):
-                pass
-            </script>
-            """
-        )
+        class App(cg.Component):
+            pass
+        </script>
+        """
     )
 
     state = reactive({"label": True, "edit": True})
 
-    renderer = PySideRenderer(autoshow=False)
-    gui = Collagraph(renderer=renderer)
-    gui.render(h(App, state), qapp)
+    renderer = cg.PySideRenderer(autoshow=False)
+    gui = cg.Collagraph(renderer=renderer)
+    gui.render(App, qapp, state=state)
 
     scroll_area = None
 

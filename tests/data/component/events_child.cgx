@@ -1,0 +1,16 @@
+<child
+  @simple_event="simple_event"
+  @event_with_arg="event_with_arg"
+  :value="value"
+/>
+
+<script>
+import collagraph as cg
+
+class Child(cg.Component):
+    def simple_event(self):
+        self.emit("bump")
+
+    def event_with_arg(self):
+        self.emit("bump_step", 4)
+</script>

@@ -1,7 +1,7 @@
 from PySide6 import QtWidgets
 
-from . import widget
 from ... import PySideRenderer
+from . import widget
 
 
 @PySideRenderer.register_set_attr(QtWidgets.QComboBox)

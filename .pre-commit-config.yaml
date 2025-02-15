@@ -10,10 +10,9 @@ repos:
 #     -   id: check-added-large-files
 - repo: local
   hooks:
-  - id: flake8
-    name: flake8
-    description: '`flake8` is a command-line utility for enforcing style consistency across Python projects.'
-    entry: poetry run flake8
+  - id: ruff
+    name: ruff
+    entry: poetry run ruff check
     language: system
     types: [python]
     require_serial: true

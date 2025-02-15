@@ -1,11 +1,9 @@
-<template>
-  <root>
-    <Node name="a">
-      <Node name="b" />
-    </Node>
-    <Node name="c" />
-  </root>
-</template>
+<root>
+  <Node name="a">
+    <Node name="b" />
+  </Node>
+  <Node name="c" />
+</root>
 
 <script lang="python">
 import collagraph as cg

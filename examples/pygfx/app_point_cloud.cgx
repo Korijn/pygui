@@ -1,0 +1,31 @@
+<window>
+  <widget>
+    <RenderWidget v-bind="state" :scene="PointCloud" />
+    <widget
+      :layout="{'type': 'Box', 'direction': 'LeftToRight'}"
+      :maximum-height="50"
+    >
+      <button text="Add" @clicked="add" />
+      <button text="Remove" @clicked="remove" />
+    </widget>
+  </widget>
+</window>
+
+<script>
+import collagraph as cg
+from examples.pygfx.render_widget import RenderWidget
+from examples.pygfx.point_cloud import PointCloud
+
+
+class Example(cg.Component):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.state["count"] = self.props["count"]
+
+    def add(self):
+        self.state["count"] += 1
+
+    def remove(self):
+        if self.state["count"] > 0:
+            self.state["count"] -= 1
+</script>

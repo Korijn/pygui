@@ -24,11 +24,11 @@
     import collagraph as cg
 
     template = open_url("http://localhost:8000/pyscript.cgx")
-    component_class, module_namespace = cg.cgx.cgx.load_from_string(template.getvalue())
+    component_class, module_namespace = cg.sfc.compiler.load_from_string(template.getvalue())
 
     container = js.window.document.getElementById("output")
     gui = cg.Collagraph(renderer=cg.DomRenderer())
-    gui.render(cg.h(component_class), container)
+    gui.render(component_class, container)
   </py-script>
   <!-- <py-repl id="my-repl" auto-generate="true"> </py-repl> -->
 </body>

@@ -1,0 +1,16 @@
+<child
+  :injected_value="injected_value"
+  :injected_non_existing="injected_non_existing"
+  :injected_default="injected_default"
+/>
+
+<script>
+import collagraph as cg
+
+class Child(cg.Component):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.state["injected_value"] = self.inject("value")
+        self.state["injected_non_existing"] = self.inject("non_existing")
+        self.state["injected_default"] = self.inject("other", default="bar")
+</script>

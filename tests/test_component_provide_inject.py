@@ -1,35 +1,30 @@
-from collagraph import Collagraph, Component, DictRenderer, EventLoopType, h
+from collagraph import Collagraph, DictRenderer, EventLoopType
 
 
 def test_component_provide_inject():
-    class Child(Component):
-        injected_value = None
-        injected_non_existing = None
-        injected_default = None
-
-        def __init__(self, *args, **kwargs):
-            super().__init__(*args, **kwargs)
-            Child.injected_value = self.inject("value")
-            Child.injected_non_existing = self.inject("non_existing")
-            Child.injected_default = self.inject("other", default="bar")
-
-        def render(self):
-            return h("child")
-
-    class Parent(Component):
-        def __init__(self, *args, **kwargs):
-            super().__init__(*args, **kwargs)
-            self.provide(key="value", value="foo")
-
-        def render(self):
-            return h("parent", {}, h(Child))
+    from tests.data.component.provide_parent import Parent
 
     gui = Collagraph(DictRenderer(), event_loop_type=EventLoopType.SYNC)
     container = {"type": "root"}
-    element = h(Parent)
+    gui.render(Parent, container)
 
-    gui.render(element, container)
+    parent = container["children"][0]
+    child = parent["children"][0]
+    assert child["attrs"]["injected_default"] == "bar"
+    assert child["attrs"]["injected_value"] == "foo"
+    assert child["attrs"]["injected_non_existing"] is None
 
-    assert Child.injected_value == "foo"
-    assert Child.injected_non_existing is None
-    assert Child.injected_default == "bar"
+
+def test_component_provide_inject_deep():
+    from tests.data.component.provide_root import Root
+
+    gui = Collagraph(DictRenderer(), event_loop_type=EventLoopType.SYNC)
+    container = {"type": "root"}
+    gui.render(Root, container)
+
+    root = container["children"][0]
+    parent = root["children"][0]
+    child = parent["children"][0]
+    assert child["attrs"]["injected_default"] == "baz"
+    assert child["attrs"]["injected_value"] == "foo"
+    assert child["attrs"]["injected_non_existing"] is None

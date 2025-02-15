@@ -1,7 +1,7 @@
 from PySide6.QtWidgets import QDialogButtonBox
 
-from .widget import set_attribute as widget_set_attribute
 from ... import PySideRenderer
+from .widget import set_attribute as widget_set_attribute
 
 
 @PySideRenderer.register_insert(QDialogButtonBox)

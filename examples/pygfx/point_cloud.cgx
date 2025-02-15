@@ -1,0 +1,70 @@
+<!--
+Run this example as follows:
+    poetry run collagraph --renderer pygfx --state '{"count": 100}' examples/pygfx/point_cloud.cgx
+-->
+<ambient-light />
+<point-light />
+<group>
+  <Point
+    v-for="idx, position in enumerate(positions)"
+    :position="position"
+    :material="'selected' if idx == selected else 'hovered' if idx == hovered else 'default'"
+    :index="idx"
+    @selected="set_selected"
+    @hovered="set_hovered"
+  />
+</group>
+
+<script>
+import random
+
+import pygfx as gfx
+import collagraph
+from observ import watch
+
+from examples.pygfx.point import Point
+
+
+def rand_point():
+    return (
+        random.randint(-20, 20),
+        random.randint(-20, 20),
+        random.randint(-20, 20),
+    )
+
+
+class PointCloud(collagraph.Component):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.state["positions"] = []
+        self.state["hovered"] = -1
+        self.state["selected"] = -1
+
+        self.watchers = {}
+        self.watchers["count"] = watch(
+            lambda: self.props["count"],
+            self.update_positions,
+            immediate=True,
+        )
+
+    def update_positions(self):
+        print(f"Number of spheres: {self.props['count']}")
+        new_count = self.props["count"]
+        old_count = len(self.state["positions"])
+
+        if new_count > old_count:
+            self.state["positions"].extend([
+                rand_point() for _ in range(new_count - old_count)
+            ])
+        elif new_count < old_count:
+            del self.state["positions"][0:old_count - new_count]
+
+    def set_hovered(self, index):
+        self.state["hovered"] = index
+
+    def set_selected(self, index):
+        if self.state["selected"] == index:
+            self.state["selected"] = -1
+        else:
+            self.state["selected"] = index
+</script>

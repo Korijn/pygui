@@ -8,7 +8,6 @@ from PySide6 import QtCore, QtWidgets
 import collagraph as cg
 from collagraph import h
 
-
 STATE_MAP = {
     False: QtCore.Qt.Unchecked,
     True: QtCore.Qt.Checked,

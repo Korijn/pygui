@@ -2,10 +2,9 @@ import logging
 
 from PySide6.QtWidgets import QWidget
 
-
+from ...pyside_renderer import PySideRenderer
 from .layouts import remove_layout
 from .qobject import set_attribute as qobject_set_attribute
-from ...pyside_renderer import PySideRenderer
 
 logger = logging.getLogger(__name__)
 

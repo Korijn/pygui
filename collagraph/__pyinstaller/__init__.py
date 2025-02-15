@@ -1,6 +1,5 @@
 from os.path import dirname
 
-
 HERE = dirname(__file__)
 
 

@@ -1,0 +1,25 @@
+<parent
+  :count="count"
+>
+  <Child
+    value="foo"
+    @bump="bump"
+    @bump_step="bump_with_arg"
+  />
+</parent>
+
+<script>
+import collagraph as cg
+from tests.data.component.events_child import Child
+
+class Parent(cg.Component):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.state["count"] = 0
+
+    def bump(self):
+        self.state["count"] += 1
+
+    def bump_with_arg(self, step):
+        self.state["count"] += step
+</script>

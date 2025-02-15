@@ -1,8 +1,6 @@
-<template>
-  <node :name="props.get('name')">
-    <slot />
-  </node>
-</template>
+<node :name="props.get('name')">
+  <slot />
+</node>
 
 <script lang="python">
 import collagraph as cg

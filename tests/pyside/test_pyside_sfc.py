@@ -7,14 +7,37 @@ from PySide6 import QtCore, QtWidgets
 import collagraph as cg
 
 
-def test_pyside_sfc_event_handlers(qtbot):
-    """Test that class methods can work as event handlers in PySide."""
-    from tests.data.directive_on import Buttons
+def test_pyside_sfc_event_handlers(qtbot, parse_source):
+    """Test that methods on Component class can work as event handlers in PySide."""
+    Buttons, _ = parse_source(
+        """
+        <widget>
+          <button v-on:clicked="increase" text="Add" object_name="add" />
+          <button @clicked="decrease" text="Sub" object_name="dec" />
+          <label :text="str(count)" />
+        </widget>
+
+        <script>
+        import collagraph as cg
+
+        class Buttons(cg.Component):
+            def __init__(self, *args, **kwargs):
+                super().__init__(*args, **kwargs)
+                self.state["count"] = 0
+
+            def increase(self):
+                self.state["count"] += 1
+
+            def decrease(self):
+                self.state["count"] -= 1
+        </script>
+        """
+    )
 
     renderer = cg.PySideRenderer(autoshow=False)
     gui = cg.Collagraph(renderer=renderer)
     container = renderer.create_element("widget")
-    gui.render(cg.h(Buttons, {}), container)
+    gui.render(Buttons, container)
 
     label = None
     add_button = None

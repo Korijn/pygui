@@ -7,8 +7,8 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
-from .. import attr_name_to_method_name, call_method
 from ...pyside_renderer import LAYOUT_MAPPING, PySideRenderer
+from .. import attr_name_to_method_name, call_method
 
 DIRECTIONS = {
     "TopToBottom": QBoxLayout.Direction.TopToBottom,

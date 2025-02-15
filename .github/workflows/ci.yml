@@ -5,7 +5,7 @@ on:
     branches:
       - master
     tags:
-      - 'v*'
+      - "v*"
   pull_request:
     branches:
       - master
@@ -25,8 +25,8 @@ jobs:
       - name: Install dependencies
         run: poetry install
       - name: Lint
-        run: poetry run flake8
-  
+        run: poetry run ruff check .
+
   test:
     name: Test on ${{ matrix.name }}
     runs-on: ubuntu-latest
@@ -35,13 +35,13 @@ jobs:
       matrix:
         include:
           - name: Linux py39
-            pyversion: '3.9'
+            pyversion: "3.9"
           - name: Linux py310
-            pyversion: '3.10'
+            pyversion: "3.10"
           - name: Linux py311
-            pyversion: '3.11'
+            pyversion: "3.11"
           - name: Linux py312
-            pyversion: '3.12'
+            pyversion: "3.12"
     steps:
       - uses: actions/checkout@v2
       - name: Set up Python ${{ matrix.pyversion }}
@@ -57,7 +57,7 @@ jobs:
       - name: Install dependencies
         run: poetry install --extras pyside --extras pygfx --with pyside
       - name: Test
-        run: poetry run pytest -v --cov=collagraph --cov-report=term-missing
+        run: poetry run pytest tests -v --cov=collagraph --cov-report=term-missing
         env:
           QT_QPA_PLATFORM: offscreen
 
@@ -65,24 +65,24 @@ jobs:
     name: Build and test wheel
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
-    - name: Set up Python 3.9
-      uses: actions/setup-python@v2
-      with:
-        python-version: '3.9'
-    - name: Install poetry
-      run: pip install "poetry>=1.4.2,<1.5"
-    - name: Install dependencies
-      run: poetry install
-    - name: Build wheel
-      run: poetry build
-    - name: Twine check
-      run: poetry run twine check dist/*
-    - name: Upload wheel artifact
-      uses: actions/upload-artifact@v2
-      with:
-        path: dist
-        name: dist
+      - uses: actions/checkout@v2
+      - name: Set up Python 3.9
+        uses: actions/setup-python@v2
+        with:
+          python-version: "3.9"
+      - name: Install poetry
+        run: pip install "poetry>=1.4.2,<1.5"
+      - name: Install dependencies
+        run: poetry install
+      - name: Build wheel
+        run: poetry build
+      - name: Twine check
+        run: poetry run twine check dist/*
+      - name: Upload wheel artifact
+        uses: actions/upload-artifact@v4
+        with:
+          path: dist
+          name: dist
 
   publish:
     name: Publish to Github and Pypi
@@ -90,32 +90,32 @@ jobs:
     needs: [lint, test, build]
     if: success() && startsWith(github.ref, 'refs/tags/v')
     steps:
-    - uses: actions/checkout@v2
-    - name: Download wheel artifact
-      uses: actions/download-artifact@v1.0.0
-      with:
-        name: dist
-    - name: Get version from git ref
-      id: get_version
-      run: echo ::set-output name=VERSION::${GITHUB_REF/refs\/tags\//}
-    - name: Create GH release
-      uses: actions/create-release@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        tag_name: ${{ steps.get_version.outputs.VERSION }}
-        release_name: Release ${{ steps.get_version.outputs.VERSION }}
-        draft: false
-        prerelease: false
-    - name: Upload release assets
-      # Move back to official action after fix https://github.com/actions/upload-release-asset/issues/4
-      uses: AButler/upload-release-assets@v2.0
-      with:
-        release-tag: ${{ steps.get_version.outputs.VERSION }}
-        files: 'dist/*.tar.gz;dist/*.whl'
-        repo-token: ${{ secrets.GITHUB_TOKEN }}
-    - name: Publish to PyPI
-      uses: pypa/gh-action-pypi-publish@master
-      with:
-        user: __token__
-        password: ${{ secrets.PYPI_PASSWORD }}
+      - uses: actions/checkout@v2
+      - name: Download wheel artifact
+        uses: actions/download-artifact@v1.0.0
+        with:
+          name: dist
+      - name: Get version from git ref
+        id: get_version
+        run: echo ::set-output name=VERSION::${GITHUB_REF/refs\/tags\//}
+      - name: Create GH release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ steps.get_version.outputs.VERSION }}
+          release_name: Release ${{ steps.get_version.outputs.VERSION }}
+          draft: false
+          prerelease: false
+      - name: Upload release assets
+        # Move back to official action after fix https://github.com/actions/upload-release-asset/issues/4
+        uses: AButler/upload-release-assets@v2.0
+        with:
+          release-tag: ${{ steps.get_version.outputs.VERSION }}
+          files: "dist/*.tar.gz;dist/*.whl"
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Publish to PyPI
+        uses: pypa/gh-action-pypi-publish@master
+        with:
+          user: __token__
+          password: ${{ secrets.PYPI_PASSWORD }}

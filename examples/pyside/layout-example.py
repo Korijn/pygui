@@ -8,8 +8,7 @@ from PySide6 import QtWidgets
 
 import collagraph as cg
 from collagraph import h
-
-from examples.pyside.flow_layout import FlowLayout  # noqa: I100
+from examples.pyside.flow_layout import FlowLayout
 
 cg.PySideRenderer.register_layout("flow", FlowLayout)
 

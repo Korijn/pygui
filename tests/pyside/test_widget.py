@@ -1,11 +1,14 @@
-from observ import reactive
+import textwrap
+
 import pytest
+from observ import reactive
 
 pytest.importorskip("PySide6")
 
 from PySide6 import QtWidgets
 
 import collagraph as cg
+from collagraph.sfc.compiler import load_from_string
 
 
 def test_widget_size():
@@ -34,9 +37,22 @@ def test_widget_close():
 
 
 def test_widget_as_window(qapp, qtbot):
+    Widget, _ = load_from_string(
+        textwrap.dedent(
+            """
+        <widget />
+
+        <script>
+        import collagraph as cg
+        class Widget(cg.Component):
+            pass
+        </script>
+        """
+        )
+    )
     renderer = cg.PySideRenderer(autoshow=False)
     gui = cg.Collagraph(renderer=renderer)
-    gui.render(cg.h("widget", {}), qapp)
+    gui.render(Widget, qapp)
 
     def check_widget_as_window():
         windows = qapp.topLevelWidgets()
@@ -46,14 +62,25 @@ def test_widget_as_window(qapp, qtbot):
 
 
 def test_widget_switch_layouts(qapp, qtbot):
-    def SwitchLayouts(props):
-        return cg.h("widget", {"layout": {**props["layout"]}})
+    SwitchLayouts, _ = load_from_string(
+        textwrap.dedent(
+            """
+        <widget :layout="layout" />
+
+        <script>
+        import collagraph as cg
+        class SwitchLayouts(cg.Component):
+            pass
+        </script>
+        """
+        )
+    )
 
     state = reactive({"layout": {"type": "box"}})
 
     renderer = cg.PySideRenderer(autoshow=False)
     gui = cg.Collagraph(renderer=renderer)
-    gui.render(cg.h(SwitchLayouts, state), qapp)
+    gui.render(SwitchLayouts, qapp, state=state)
 
     widget = None
 

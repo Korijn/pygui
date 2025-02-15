@@ -3,9 +3,8 @@ import logging
 from PySide6.QtCore import QItemSelectionModel
 from PySide6.QtGui import QAction, QStandardItemModel
 
-from .. import attr_name_to_method_name, call_method
 from ... import PySideRenderer
-
+from .. import attr_name_to_method_name, call_method
 
 logger = logging.getLogger(__name__)
 

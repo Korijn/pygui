@@ -27,6 +27,8 @@ class DictRenderer(Renderer):
     def remove(self, el, parent):
         children = parent["children"]
         children.remove(el)
+        if not children:
+            del parent["children"]
 
     def set_element_text(self, el: dict, value: str):
         el["text"] = value
@@ -48,3 +50,25 @@ class DictRenderer(Renderer):
         event_listeners = el.get("handlers", None)
         if event_listeners:
             event_listeners[event_type].remove(value)
+
+
+def format_dict(element, indent=0):
+    element_type = element["type"]
+    if element_type == "TEXT_ELEMENT":
+        return f"{'  ' * indent}{element.get('text')}"
+
+    result = [f"{'  ' * indent}<{element_type}>"]
+    attributes = format_attributes(element.get("attrs", {}))
+    if attributes:
+        result[0] = result[0][:-1] + " " + attributes + ">"
+    if "children" not in element:
+        result[0] = result[0][:-1] + " />"
+    else:
+        for child in element["children"]:
+            result.append(format_dict(child, indent=indent + 1))
+        result.append(f"{'  ' * indent}</{element_type}>")
+    return "\n".join(result)
+
+
+def format_attributes(attributes):
+    return " ".join(f'{key}="{val}"' for key, val in attributes.items())

@@ -1,7 +1,7 @@
 from PySide6.QtWidgets import QTreeWidgetItem
 
-from .qobject import set_attribute as qobject_set_attribute
 from ... import PySideRenderer
+from .qobject import set_attribute as qobject_set_attribute
 
 
 @PySideRenderer.register_insert(QTreeWidgetItem)

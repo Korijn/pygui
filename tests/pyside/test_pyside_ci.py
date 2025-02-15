@@ -2,7 +2,6 @@ import os
 
 import pytest
 
-
 # Make sure that this test is not skipped
 # on GitHub CI. We should see a failure on CI
 # when tests are run without PySide6

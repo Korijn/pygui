@@ -1,0 +1,75 @@
+<window>
+  <widget>
+    <qsplitter>
+
+      <component
+        v-for="view in ['qlistview', 'qtableview', 'qtreeview']"
+        :is="view"
+      >
+        <qstandarditemmodel :column_count="2">
+          <qstandarditem
+            v-for="content in items_content()"
+
+            :text="content['text']"
+            :model_index="content['model_index']"
+          />
+
+            <!-- v-bind="content" -->
+        </qstandarditemmodel>
+      </component>
+
+      <!-- <qlistview>
+        <qstandarditemmodel :column_count="2">
+          <qstandarditem
+            v-for="content in items_content()"
+            v-bind="content"
+          />
+        </qstandarditemmodel>
+      </qlistview>
+      <qtableview>
+        <qstandarditemmodel :column_count="2">
+          <qstandarditem
+            v-for="content in items_content()"
+            v-bind="content"
+          />
+        </qstandarditemmodel>
+      </qtableview>
+      <qtreeview>
+        <qstandarditemmodel :column_count="2">
+          <qstandarditem
+            v-for="content in items_content()"
+            v-bind="content"
+          />
+        </qstandarditemmodel>
+      </qtreeview> -->
+    </qsplitter>
+    <widget :layout="{'type': 'box', 'direction': 'LeftToRight'}" :maximum-height="50">
+      <button text="Add" @clicked="add_item" object-name="add" />
+      <button text="Remove" @clicked="remove_item" object-name="remove" />
+    </widget>
+  </widget>
+</window>
+
+<script>
+import collagraph as cg
+from observ import to_raw
+
+class ListsExample(cg.Component):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.state["values"] = to_raw(self.props["items"])
+
+    def items_content(self):
+        return [
+            {"text": text, "model_index": (row, column)}
+            for row, (item, _) in enumerate(self.state["values"])
+            for column, text in enumerate(item)
+        ]
+
+    def add_item(self):
+        self.state["values"].append([["NEW", "ITEM"], False])
+
+    def remove_item(self):
+        if len(self.state["values"]):
+            self.state["values"].pop(0)
+</script>

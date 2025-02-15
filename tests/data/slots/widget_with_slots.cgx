@@ -1,0 +1,25 @@
+<widget>
+  <header>
+    <slot name="header">
+      <label v-if="props.get('fallback')" text="header fallback" />
+    </slot>
+  </header>
+  <content>
+    <slot name="default">
+      <label v-if="props.get('fallback')" text="content fallback" />
+    </slot>
+  </content>
+  <footer>
+    <slot name="footer">
+      <label v-if="props.get('fallback')" text="footer fallback" />
+    </slot>
+  </footer>
+</widget>
+
+<script lang="python">
+import collagraph as cg
+
+
+class Layout(cg.Component):
+    pass
+</script>

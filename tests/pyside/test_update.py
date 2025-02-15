@@ -8,13 +8,13 @@ import collagraph as cg
 
 
 def test_recursive_change(qtbot):
-    from tests.data.test_pyside_update import TreeView
+    from tests.data.pyside.test_pyside_update import TreeView
 
     renderer = cg.PySideRenderer(autoshow=False)
     container = renderer.create_element("widget")
 
     gui = cg.Collagraph(renderer=renderer)
-    gui.render(cg.h(TreeView), container)
+    gui.render(TreeView, container)
 
     button = None
     item_model = None

@@ -1,0 +1,28 @@
+<mesh
+  :geometry="sphere_geom"
+  :material="materials[material]"
+  :local.position="position"
+  @click="set_selected"
+  @pointer_move="set_hovered"
+/>
+
+<script>
+import pygfx as gfx
+import collagraph as cg
+
+sphere_geom = gfx.sphere_geometry(radius=0.5)
+materials = {
+    "default": gfx.MeshPhongMaterial(color=[1, 1, 1], pick_write=True),
+    "selected": gfx.MeshPhongMaterial(color=[1, 0, 0], pick_write=True),
+    "hovered": gfx.MeshPhongMaterial(color=[1, 0.6, 0], pick_write=True),
+    "other": gfx.MeshPhongMaterial(color=[1, 0, 0.5], pick_write=True),
+}
+
+
+class Point(cg.Component):
+    def set_selected(self, event):
+        self.emit("selected", self.props["index"])
+
+    def set_hovered(self, event):
+        self.emit("hovered", self.props["index"])
+</script>

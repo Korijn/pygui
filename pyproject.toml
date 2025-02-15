@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "collagraph"
-version = "0.7.0"
+version = "0.8.0"
 description = "Reactive user interfaces"
 authors = ["Berend Klein Haneveld <berendkleinhaneveld@gmail.com>", "Korijn van Golen <korijn@gmail.com>"]
 license = "MIT"
@@ -9,20 +9,16 @@ readme = "README.md"
 
 [tool.poetry.extras]
 pygfx = ["pygfx"]
-pyside = ["pyside6_essentials"]
+pyside = ["pyside6"]
 
 [tool.poetry.dependencies]
 python = ">=3.9"
 observ = ">=0.14.1"
-pygfx = { version = ">=0.1.17", optional = true }
-pyside6_essentials = { version = "~6.6", python = "<3.13", optional = true }
+pygfx = { version = ">=0.2.0", optional = true }
+pyside6 = { version = ">=6.6", python = "<3.13", optional = true }
 
 [tool.poetry.group.dev.dependencies]
-black = "*"
-flake8 = "*"
-flake8-black = "*"
-flake8-import-order = "*"
-flake8-print = "*"
+ruff = "*"
 pre-commit = "*"
 pytest = "*"
 pytest-cov = "*"
@@ -44,6 +40,30 @@ hook-dirs = "collagraph.__pyinstaller:get_hook_dirs"
 
 [tool.poetry.scripts]
 collagraph = "collagraph.__main__:run"
+
+[tool.ruff.lint]
+select = [
+    "E4",
+    "E5",
+    "E7",
+    "E9",
+    "F",   # Pyflakes (default)
+    "I",   # isort imports
+    "N",   # pep8-naming
+    "T10", # flake8-debugger
+    "T20", # flake8-print
+    "RUF", # ruff
+]
+
+[tool.ruff.lint.per-file-ignores]
+"collagraph/renderers/**/__init__.py" = ["F401"]
+"collagraph/renderers/__init__.py" = ["E402"]
+"tests/pyside/test_*.py" = ["E402"]
+"tests/*" = ["N806", "N802"]
+"collagraph/__pyinstaller/*" = ["N999"]
+"tests_legacy/*" = ["N"]
+"examples/*" = ["N999", "N802"]
+"examples/pyside/flow_layout.py" = ["N802"]
 
 [build-system]
 requires = ["poetry>=1.0.0"]

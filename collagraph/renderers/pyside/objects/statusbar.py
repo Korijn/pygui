@@ -1,7 +1,7 @@
 from PySide6.QtWidgets import QStatusBar
 
-from . import widget
 from ... import PySideRenderer
+from . import widget
 
 
 @PySideRenderer.register_insert(QStatusBar)

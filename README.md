@@ -118,5 +118,4 @@ Syntax highlighting for single-file components (`.cgx`) is supported for VSCode 
 
 ### Formatting and linting
 
-Linting cgx files is possible with a flake8 plugin: [flake8-cgx](https://github.com/fork-tongue/flake8-cgx).
-Formatting the contents of the script tag can be done with [black-cgx](https://github.com/fork-tongue/black-cgx).
+Linting and formatting cgx files is possible with: [ruff-cgx](https://github.com/fork-tongue/ruff-cgx).
